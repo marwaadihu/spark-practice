@@ -32,6 +32,7 @@ sqoop export \
 --password password \
 --export-dir /user/riddhiparkhiya/anilagrawal/cloudera/problem1/result4a-csv \
 --table riddhiparkhiya_result_cloudera \
+-m 1 \
 --columns 'order_date, order_status, total_amount, total_order'
 
 sqoop eval \
