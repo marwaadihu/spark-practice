@@ -1,0 +1,128 @@
+http://arun-teaches-u-tech.blogspot.com/p/cca-175-prep-problem-scenario-1.html?m=0
+
+=================================================================================
+1. Using sqoop, import orders table into hdfs to folders /user/cloudera/problem1/orders. File should be loaded as Avro File and use snappy compression
+=================================================================================
+  sqoop import \
+    --connect jdbc:mysql://hostname/retail_db \
+    --username retail_user \
+    --password password \
+    --table orders \
+    --delete-target-dir \
+    --target-dir /user/riddhiparkhiya/anilagrawal/cloudera/problem1/orders \
+    --compress \
+    --compression-codec org.apache.hadoop.io.compress.SnappyCodec \
+    --as-avrodatafile
+
+=================================================================================
+2. Using sqoop, import order_items  table into hdfs to folders /user/cloudera/problem1/order-items. Files should be loaded as avro file and use snappy compression
+=================================================================================
+  sqoop import \
+    --connect jdbc:mysql://hostname/retail_db \
+    --username retail_user \
+    --password password \
+    --table order_items \
+    --delete-target-dir \
+    --target-dir /user/riddhiparkhiya/anilagrawal/cloudera/problem1/order-items \
+    --compress \
+    --compression-codec org.apache.hadoop.io.compress.SnappyCodec \
+    --as-avrodatafile
+
+=================================================================================
+3. Using Spark Scala load data at /user/cloudera/problem1/orders and /user/cloudera/problem1/orders-items items as dataframes.
+=================================================================================
+# pyspark --master yarn --conf spark.ui.port=12990 --packages com.databricks:spark-avro_2.10:2.0.1
+
+from pyspark import SparkConf, SparkContext
+from pyspark.sql import SQLContext
+
+conf = SparkConf().setAppName('problem1').setMaster('yarn-client')
+
+sc = SparkContext(conf=conf)
+
+sqlContext = SQLContext(sc)
+
+sqlContext.setConf('spark.sql.avro.compression.codec','snappy')
+
+ordersDF = sqlContext.read.load('/user/riddhiparkhiya/anilagrawal/cloudera/problem1/orders', 'com.databricks.spark.avro')
+
+orderItemsDF = sqlContext.read.load('/user/riddhiparkhiya/anilagrawal/cloudera/problem1/order-items','com.databricks.spark.avro')
+
+=================================================================================
+4. Expected Intermediate Result: Order_Date , Order_status, total_orders, total_amount.
+In plain english, please find total orders and total amount per status per day.
+The result should be sorted by order date in descending, order status in ascending and total amount in descending and total orders in ascending.
+Aggregation should be done using below methods. However, sorting can be done using a dataframe or RDD. Perform aggregation in each of the following ways
+a). Just by using Data Frames API - here order_date should be YYYY-MM-DD format
+b). Using Spark SQL  - here order_date should be YYYY-MM-DD format
+c). By using combineByKey function on RDDS -- No need of formatting order_date or total_amount
+=================================================================================
+
+ordersDF.registerTempTable('orders')
+
+orderItemsDF.registerTempTable('order_items')
+
+resultDF = sqlContext.sql('\
+    select to_date(from_unixtime(o.order_date/1000)) as order_date, o.order_status, sum(oi.order_item_subtotal) as total_amount, count(distinct o.order_id) as total_orders \
+    from orders o \
+    join order_items oi \
+    on o.order_id == oi.order_item_order_id \
+    group by o.order_date, o.order_status \
+    order by o.order_date desc, o.order_status, total_amount desc,total_orders')
+
+=================================================================================
+5. Store the result as parquet file into hdfs using gzip compression under folder
+/user/cloudera/problem1/result4a-gzip
+/user/cloudera/problem1/result4b-gzip
+/user/cloudera/problem1/result4c-gzip
+=================================================================================
+
+sqlContext.setConf('spark.sql.parquet.compression.codec','gzip')
+
+resultDF.write.mode('overwrite').save('/user/riddhiparkhiya/anilagrawal/cloudera/problem1/result4a-gzip', "parquet")
+
+=================================================================================
+6. Store the result as parquet file into hdfs using snappy compression under folder
+/user/cloudera/problem1/result4a-snappy
+/user/cloudera/problem1/result4b-snappy
+/user/cloudera/problem1/result4c-snappy
+=================================================================================
+
+sqlContext.setConf('spark.sql.parquet.compression.codec','snappy')
+
+resultDF.write.mode('overwrite').save('/user/riddhiparkhiya/anilagrawal/cloudera/problem1/result4a-snappy','parquet')
+
+=================================================================================
+7. Store the result as CSV file into hdfs using No compression under folder
+/user/cloudera/problem1/result4a-csv
+/user/cloudera/problem1/result4b-csv
+/user/cloudera/problem1/result4c-csv
+=================================================================================
+
+sqlContext.setConf('spark.sql.csv.compression.codec','uncompressed')
+
+resultDF.map(lambda line: str(line[0]) + "," + line[1] + "," + str(line[2]) +"," + str(line[3])).coalesce(1).saveAsTextFile('/user/riddhiparkhiya/anilagrawal/cloudera/problem1/result4a-csv')
+
+=================================================================================
+8. create a mysql table named result and load data from /user/cloudera/problem1/result4a-csv to mysql table named result
+=================================================================================
+
+sqoop eval \
+--connect jdbc:mysql://hostname/retail_export \
+--username retail_user \
+--password password \
+--query 'create table riddhiparkhiya_result_cloudera(order_date varchar(200), order_status varchar(200), total_order int, total_amount float)'
+
+sqoop export \
+--connect jdbc:mysql://hostname/retail_export \
+--username retail_user \
+--password password \
+--export-dir /user/riddhiparkhiya/anilagrawal/cloudera/problem1/result4a-csv \
+--table riddhiparkhiya_result_cloudera \
+--columns 'order_date, order_status, total_amount, total_order'
+
+sqoop eval \
+--connect jdbc:mysql://hostname/retail_export \
+--username retail_user \
+--password password \
+--query 'select * from riddhiparkhiya_result_cloudera limit 10'

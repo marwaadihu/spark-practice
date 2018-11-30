@@ -1,0 +1,41 @@
+sqoop import \
+--connect jdbc:mysql://hostname/retail_db \
+--username retail_user \
+--password password \
+--table orders \
+--delete-target-dir \
+--target-dir /user/riddhiparkhiya/anilagrawal/cloudera/problem1/orders \
+--compress \
+--compression-codec org.apache.hadoop.io.compress.SnappyCodec \
+--as-avrodatafile
+
+sqoop import \
+--connect jdbc:mysql://hostname/retail_db \
+--username retail_user \
+--password password \
+--table order_items \
+--delete-target-dir \
+--target-dir /user/riddhiparkhiya/anilagrawal/cloudera/problem1/order-items \
+--compress \
+--compression-codec org.apache.hadoop.io.compress.SnappyCodec \
+--as-avrodatafile
+
+sqoop eval \
+--connect jdbc:mysql://hostname/retail_export \
+--username retail_user \
+--password password \
+--query 'create table riddhiparkhiya_result_cloudera(order_date varchar(200), order_status varchar(200), total_order int, total_amount float)'
+
+sqoop export \
+--connect jdbc:mysql://hostname/retail_export \
+--username retail_user \
+--password password \
+--export-dir /user/riddhiparkhiya/anilagrawal/cloudera/problem1/result4a-csv \
+--table riddhiparkhiya_result_cloudera \
+--columns 'order_date, order_status, total_amount, total_order'
+
+sqoop eval \
+--connect jdbc:mysql://hostname/retail_export \
+--username retail_user \
+--password password \
+--query 'select * from riddhiparkhiya_result_cloudera limit 10'
