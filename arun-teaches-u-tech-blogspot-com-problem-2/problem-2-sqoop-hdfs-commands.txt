@@ -1,0 +1,14 @@
+sqoop import \
+--connect jdbc:mysql://ms.itversity.com/retail_db \
+--username retail_user \
+--password itversity \
+--table products \
+--delete-target-dir \
+--fields-terminated-by '|' \
+--target-dir /user/riddhiparkhiya/anilagrawal/cloudera/products
+
+hadoop fs -mkdir /user/riddhiparkhiya/anilagrawal/cloudera/problem2
+
+hadoop fs -mv /user/riddhiparkhiya/anilagrawal/cloudera/products /user/riddhiparkhiya/anilagrawal/cloudera/problem2/products
+
+hadoop fs -chmod -R u=rwx,g=rw,o=rx /user/riddhiparkhiya/anilagrawal/cloudera/problem2/products/

@@ -1,0 +1,79 @@
+http://arun-teaches-u-tech.blogspot.com/p/cca-175-prep-problem-scenario-2.html
+
+=================================================================================
+1. Using sqoop copy data available in mysql products table to folder /user/cloudera/products on hdfs as text file. columns should be delimited by pipe '|'
+=================================================================================
+
+sqoop import \
+--connect jdbc:mysql://ms.itversity.com/retail_db \
+--username retail_user \
+--password itversity \
+--table products \
+--delete-target-dir \
+--fields-terminated-by '|' \
+--target-dir /user/riddhiparkhiya/anilagrawal/cloudera/products
+
+=================================================================================
+2. move all the files from /user/cloudera/products folder to /user/cloudera/problem2/products folder
+=================================================================================
+
+hadoop fs -mkdir /user/riddhiparkhiya/anilagrawal/cloudera/problem2
+
+hadoop fs -mv /user/riddhiparkhiya/anilagrawal/cloudera/products /user/riddhiparkhiya/anilagrawal/cloudera/problem2/products
+
+=================================================================================
+3. Change permissions of all the files under /user/cloudera/problem2/products such that owner has read,write and execute permissions, group has read and write permissions whereas others have just read and execute permissions
+=================================================================================
+
+hadoop fs -chmod -R u=rwx,g=rw,o=rx /user/riddhiparkhiya/anilagrawal/cloudera/problem2/products/
+
+=================================================================================
+4. read data in /user/cloudera/problem2/products and do the following operations using 
+a) dataframes api 
+b) spark sql 
+c) RDDs aggregateByKey method. 
+Your solution should have three sets of steps. 
+Sort the resultant dataset by category id
+filter such that your RDD\DF has products whose price is lesser than 100 USD
+on the filtered data set find out the higest value in the product_price column under each category
+on the filtered data set also find out total products under each category
+on the filtered data set also find out the average price of the product under each category
+on the filtered data set also find out the minimum price of the product under each category
+=================================================================================
+# pyspark --master yarn --conf spark.ui.port=12990 --packages com.databricks:spark-avro_2.10:2.0.1
+
+from pyspark import SparkConf, SparkContext
+
+conf = SparkConf().setAppName('problem-2').setMaster('yarn-client')
+
+sc = SparkContext(conf=conf)
+
+products = sc.textFile('/user/riddhiparkhiya/anilagrawal/cloudera/problem2/products')
+
+productsTuple = products.map(lambda line: tuple(line.split('|')))
+
+productsDF = productsTuple.map(lambda line: (int(line[0]), int(line[1]), line[2], line[3], float(line[4]), line[5])).toDF(schema=['product_id', 'product_category_id', 'product_name', 'product_description', 'product_price', 'product_image'])
+
+productsDF.registerTempTable('products')
+
+resultDF = sqlContext.sql('\
+select product_category_id, \
+max(product_price) as max_price, \
+min(product_price) as min_price, \
+count(product_id) as total_products, \
+avg(product_price) as average_price_per_product \
+from products \
+where product_price < 100 \
+group by product_category_id \
+order by product_category_id')
+
+=================================================================================
+5. store the result in avro file using snappy compression under these folders respectively
+/user/cloudera/problem2/products/result-df
+/user/cloudera/problem2/products/result-sql
+/user/cloudera/problem2/products/result-rdd
+=================================================================================
+
+sqlContext.setConf('spark.sql.avro.compression.codec','snappy')
+
+resultDF.write.mode('overwrite').save('/user/riddhiparkhiya/anilagrawal/cloudera/problem2/products/result-df','com.databricks.spark.avro')
