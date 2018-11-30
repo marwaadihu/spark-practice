@@ -1,7 +1,7 @@
 sqoop import \
---connect jdbc:mysql://ms.itversity.com/retail_db \
+--connect jdbc:mysql://hostname/retail_db \
 --username retail_user \
---password itversity \
+--password password \
 --table products \
 --delete-target-dir \
 --fields-terminated-by '|' \

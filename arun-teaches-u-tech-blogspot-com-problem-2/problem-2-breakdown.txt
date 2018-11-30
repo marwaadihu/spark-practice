@@ -3,11 +3,10 @@ http://arun-teaches-u-tech.blogspot.com/p/cca-175-prep-problem-scenario-2.html
 =================================================================================
 1. Using sqoop copy data available in mysql products table to folder /user/cloudera/products on hdfs as text file. columns should be delimited by pipe '|'
 =================================================================================
-
 sqoop import \
---connect jdbc:mysql://ms.itversity.com/retail_db \
+--connect jdbc:mysql://hostname/retail_db \
 --username retail_user \
---password itversity \
+--password password \
 --table products \
 --delete-target-dir \
 --fields-terminated-by '|' \
