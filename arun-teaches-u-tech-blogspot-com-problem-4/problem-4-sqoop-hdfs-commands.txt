@@ -1,7 +1,7 @@
 sqoop import \
---connect jdbc:mysql://ms.itversity.com/retail_db \
+--connect jdbc:mysql://hostname/retail_db \
 --username retail_user \
---password itversity \
+--password password \
 --table orders \
 --delete-target-dir \
 --autoreset-to-one-mapper \
@@ -9,9 +9,9 @@ sqoop import \
 --fields-terminated-by '\t'
 
 sqoop import \
---connect jdbc:mysql://ms.itversity.com/retail_db \
+--connect jdbc:mysql://hostname/retail_db \
 --username retail_user \
---password itversity \
+--password password \
 --table orders \
 --delete-target-dir \
 --autoreset-to-one-mapper \
@@ -19,9 +19,9 @@ sqoop import \
 --as-avrodatafile
 
 sqoop import \
---connect jdbc:mysql://ms.itversity.com/retail_db \
+--connect jdbc:mysql://hostname/retail_db \
 --username retail_user \
---password itversity \
+--password password \
 --table orders \
 --delete-target-dir \
 --warehouse-dir /user/saurinchauhan/anilagrawal/cloudera/problem5/parquet \
