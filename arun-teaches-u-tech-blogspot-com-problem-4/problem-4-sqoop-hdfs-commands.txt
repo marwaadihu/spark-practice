@@ -1,0 +1,28 @@
+sqoop import \
+--connect jdbc:mysql://ms.itversity.com/retail_db \
+--username retail_user \
+--password itversity \
+--table orders \
+--delete-target-dir \
+--autoreset-to-one-mapper \
+--warehouse-dir /user/saurinchauhan/anilagrawal/cloudera/problem5/text \
+--fields-terminated-by '\t'
+
+sqoop import \
+--connect jdbc:mysql://ms.itversity.com/retail_db \
+--username retail_user \
+--password itversity \
+--table orders \
+--delete-target-dir \
+--autoreset-to-one-mapper \
+--warehouse-dir /user/saurinchauhan/anilagrawal/cloudera/problem5/avro \
+--as-avrodatafile
+
+sqoop import \
+--connect jdbc:mysql://ms.itversity.com/retail_db \
+--username retail_user \
+--password itversity \
+--table orders \
+--delete-target-dir \
+--warehouse-dir /user/saurinchauhan/anilagrawal/cloudera/problem5/parquet \
+--as-parquetfile
