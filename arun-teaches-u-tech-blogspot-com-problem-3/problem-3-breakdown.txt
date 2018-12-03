@@ -4,9 +4,9 @@ http://arun-teaches-u-tech.blogspot.com/p/cca-175-hadoop-and-spark-developer-exa
 1. Import all tables from mysql database into hdfs as avro data files. use compression and the compression codec should be snappy. data warehouse directory should be retail_stage.db
 
 sqoop import-all-tables \
---connect jdbc:mysql://ms.itversity.com/retail_db \
+--connect jdbc:mysql://hostname/retail_db \
 --username retail_user \
---password itversity \
+--password password \
 --as-avrodatafile \
 --autoreset-to-one-mapper \
 --warehouse-dir /user/saurinchauhan/anilagrawal/cloudera/problem3/retail_stage.db \
